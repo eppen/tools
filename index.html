@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="免费在线开发者工具：JSON 格式化、Base64 编解码、Unix 时间戳转换。纯浏览器本地运行，不上传数据。">
+  <meta name="google-adsense-account" content="ca-pub-2045994937692573">
+  <title>Eppen Tools · 免费在线开发者工具</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=1">
+</head>
+<body data-page="home">
+  <header class="site-header">
+    <nav class="nav container">
+      <a class="logo" href="index.html">
+        <span class="logo-icon">{ }</span>
+        <span>Eppen Tools</span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="打开菜单">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html" data-nav="home">首页</a></li>
+        <li><a href="json-formatter.html" data-nav="json">JSON</a></li>
+        <li><a href="base64.html" data-nav="base64">Base64</a></li>
+        <li><a href="timestamp.html" data-nav="timestamp">时间戳</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <p class="hero-tag">tools.eppencn.com</p>
+        <h1>开发者在线工具</h1>
+        <p class="hero-desc">JSON 格式化、Base64 编解码、Unix 时间戳转换。所有处理在浏览器本地完成，数据不上传服务器。</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <h2 class="section-title">工具列表</h2>
+        <div class="tool-grid">
+          <a class="tool-card" href="json-formatter.html">
+            <span class="tool-card-icon">{ }</span>
+            <h2>JSON 格式化</h2>
+            <p>格式化、压缩、校验 JSON，快速定位语法错误，支持一键复制。</p>
+            <span class="tool-card-arrow">打开工具 →</span>
+          </a>
+          <a class="tool-card" href="base64.html">
+            <span class="tool-card-icon">B64</span>
+            <h2>Base64 编解码</h2>
+            <p>文本与 Base64 互转，完整支持 UTF-8 中文，适合 API 调试与数据传输。</p>
+            <span class="tool-card-arrow">打开工具 →</span>
+          </a>
+          <a class="tool-card" href="timestamp.html">
+            <span class="tool-card-icon">TS</span>
+            <h2>Unix 时间戳</h2>
+            <p>秒/毫秒时间戳与可读日期互转，显示本地时区与 UTC ISO 格式。</p>
+            <span class="tool-card-arrow">打开工具 →</span>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p class="footer-note">
+        <a href="https://eppencn.com/" target="_blank" rel="noopener">eppencn.com 博客</a> ·
+        <a href="https://mcguidehub.eppencn.com/" target="_blank" rel="noopener">Minecraft 攻略</a> ·
+        <a href="privacy.html">隐私政策</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="js/ads-config.js?v=1"></script>
+  <script src="js/ads.js?v=1"></script>
+  <script src="js/common.js?v=1"></script>
+</body>
+</html>

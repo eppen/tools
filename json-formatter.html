@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="免费在线 JSON 格式化、压缩与校验工具。浏览器本地运行，支持错误定位与一键复制。">
+  <meta name="google-adsense-account" content="ca-pub-2045994937692573">
+  <title>JSON 格式化工具 · Eppen Tools</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=1">
+</head>
+<body data-page="json">
+  <header class="site-header">
+    <nav class="nav container">
+      <a class="logo" href="index.html">
+        <span class="logo-icon">{ }</span>
+        <span>Eppen Tools</span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="打开菜单">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html" data-nav="home">首页</a></li>
+        <li><a href="json-formatter.html" data-nav="json">JSON</a></li>
+        <li><a href="base64.html" data-nav="base64">Base64</a></li>
+        <li><a href="timestamp.html" data-nav="timestamp">时间戳</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="section">
+    <div class="container">
+      <div class="page-header">
+        <h1>JSON 格式化</h1>
+        <p>格式化、压缩或校验 JSON 字符串，解析失败时提示大致行号。</p>
+      </div>
+
+      <div class="tool-panel">
+        <div class="tool-toolbar">
+          <div class="btn-group">
+            <button type="button" class="btn btn-primary" id="btnFormat">格式化</button>
+            <button type="button" class="btn btn-outline" id="btnMinify">压缩</button>
+            <button type="button" class="btn btn-outline" id="btnClear">清空</button>
+          </div>
+        </div>
+        <div class="tool-body">
+          <div class="tool-columns">
+            <div>
+              <label class="field-label" for="jsonInput">输入 JSON</label>
+              <textarea id="jsonInput" placeholder='{"name":"example","items":[1,2,3]}' spellcheck="false"></textarea>
+              <div class="btn-group" style="margin-top: 8px;">
+                <button type="button" class="btn btn-outline" id="btnCopyIn">复制输入</button>
+              </div>
+            </div>
+            <div>
+              <label class="field-label" for="jsonOutput">输出结果</label>
+              <textarea id="jsonOutput" class="output" readonly placeholder="格式化结果将显示在这里" spellcheck="false"></textarea>
+              <div class="btn-group" style="margin-top: 8px;">
+                <button type="button" class="btn btn-outline" id="btnCopyOut">复制输出</button>
+              </div>
+            </div>
+          </div>
+          <div class="status-msg" id="jsonStatus" hidden role="alert"></div>
+        </div>
+      </div>
+
+      <div class="help-block">
+        <h2>使用说明</h2>
+        <p>将 API 响应或配置文件粘贴到左侧输入框，点击「格式化」以 2 空格缩进美化 JSON，或点击「压缩」移除空白字符。若 JSON 语法有误，工具会显示错误信息并尝试标注出错行号。所有处理均在本地浏览器完成，不会上传到任何服务器。</p>
+        <ul>
+          <li>支持对象、数组、字符串、数字、布尔与 null</li>
+          <li>适合调试 REST API、配置文件与日志片段</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p class="footer-note">
+        <a href="https://eppencn.com/" target="_blank" rel="noopener">eppencn.com 博客</a> ·
+        <a href="https://mcguidehub.eppencn.com/" target="_blank" rel="noopener">Minecraft 攻略</a> ·
+        <a href="privacy.html">隐私政策</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="js/ads-config.js?v=1"></script>
+  <script src="js/ads.js?v=1"></script>
+  <script src="js/common.js?v=1"></script>
+  <script src="js/json-formatter.js?v=1"></script>
+</body>
+</html>

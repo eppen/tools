@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="免费 Unix 时间戳转换工具，支持秒/毫秒，显示本地时区与 UTC ISO 格式。">
+  <meta name="google-adsense-account" content="ca-pub-2045994937692573">
+  <title>Unix 时间戳转换 · Eppen Tools</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=1">
+</head>
+<body data-page="timestamp">
+  <header class="site-header">
+    <nav class="nav container">
+      <a class="logo" href="index.html">
+        <span class="logo-icon">{ }</span>
+        <span>Eppen Tools</span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="打开菜单">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html" data-nav="home">首页</a></li>
+        <li><a href="json-formatter.html" data-nav="json">JSON</a></li>
+        <li><a href="base64.html" data-nav="base64">Base64</a></li>
+        <li><a href="timestamp.html" data-nav="timestamp">时间戳</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="section">
+    <div class="container">
+      <div class="page-header">
+        <h1>Unix 时间戳转换</h1>
+        <p>将 Unix 时间戳（秒或毫秒）转换为可读日期，或获取当前时间戳。</p>
+      </div>
+
+      <div class="tool-panel">
+        <div class="tool-toolbar">
+          <div class="mode-tabs btn-group">
+            <button type="button" class="btn btn-outline active" id="unitSec">秒 (s)</button>
+            <button type="button" class="btn btn-outline" id="unitMs">毫秒 (ms)</button>
+          </div>
+          <button type="button" class="btn btn-primary" id="btnNow">当前时间</button>
+          <button type="button" class="btn btn-outline" id="btnConvert">转换</button>
+          <button type="button" class="btn btn-outline" id="btnClear">清空</button>
+        </div>
+        <div class="tool-body tool-columns single">
+          <div>
+            <label class="field-label" for="tsInput">Unix 时间戳</label>
+            <input type="text" id="tsInput" placeholder="例如 1718448000" inputmode="numeric" autocomplete="off">
+          </div>
+          <div class="result-grid">
+            <div class="result-item">
+              <label>本地时间</label>
+              <div class="result-value" id="localOut">—</div>
+            </div>
+            <div class="result-item">
+              <label>UTC</label>
+              <div class="result-value" id="utcOut">—</div>
+            </div>
+            <div class="result-item">
+              <label>ISO 8601</label>
+              <div class="result-value" id="isoOut">—</div>
+            </div>
+          </div>
+          <div class="status-msg" id="tsStatus" hidden role="alert"></div>
+        </div>
+      </div>
+
+      <div class="help-block">
+        <h2>使用说明</h2>
+        <p>Unix 时间戳表示自 1970-01-01 00:00:00 UTC 起的秒数或毫秒数。10 位数字通常为秒，13 位通常为毫秒。输入时间戳后点击「转换」，或使用「当前时间」一键填充。工具会同时显示您浏览器所在时区的本地时间、UTC 字符串与 ISO 8601 格式，便于日志分析与 API 调试。</p>
+        <ul>
+          <li>支持负时间戳（1970 年之前）</li>
+          <li>按 Enter 键可快速转换</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p class="footer-note">
+        <a href="https://eppencn.com/" target="_blank" rel="noopener">eppencn.com 博客</a> ·
+        <a href="https://mcguidehub.eppencn.com/" target="_blank" rel="noopener">Minecraft 攻略</a> ·
+        <a href="privacy.html">隐私政策</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="js/ads-config.js?v=1"></script>
+  <script src="js/ads.js?v=1"></script>
+  <script src="js/common.js?v=1"></script>
+  <script src="js/timestamp.js?v=1"></script>
+</body>
+</html>

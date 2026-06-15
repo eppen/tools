@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="免费在线 Base64 编码与解码工具，支持 UTF-8 中文。浏览器本地运行，数据不上传。">
+  <meta name="google-adsense-account" content="ca-pub-2045994937692573">
+  <title>Base64 编解码 · Eppen Tools</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=1">
+</head>
+<body data-page="base64">
+  <header class="site-header">
+    <nav class="nav container">
+      <a class="logo" href="index.html">
+        <span class="logo-icon">{ }</span>
+        <span>Eppen Tools</span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="打开菜单">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html" data-nav="home">首页</a></li>
+        <li><a href="json-formatter.html" data-nav="json">JSON</a></li>
+        <li><a href="base64.html" data-nav="base64">Base64</a></li>
+        <li><a href="timestamp.html" data-nav="timestamp">时间戳</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="section">
+    <div class="container">
+      <div class="page-header">
+        <h1>Base64 编解码</h1>
+        <p>文本与 Base64 字符串互转，完整支持 UTF-8 中文与 emoji。</p>
+      </div>
+
+      <div class="tool-panel">
+        <div class="tool-toolbar">
+          <div class="mode-tabs btn-group">
+            <button type="button" class="btn btn-outline active" id="btnEncode">编码</button>
+            <button type="button" class="btn btn-outline" id="btnDecode">解码</button>
+          </div>
+          <button type="button" class="btn btn-outline" id="btnClear">清空</button>
+        </div>
+        <div class="tool-body">
+          <div class="tool-columns">
+            <div>
+              <label class="field-label" for="base64Input">输入</label>
+              <textarea id="base64Input" placeholder="输入要编码或解码的内容" spellcheck="false"></textarea>
+            </div>
+            <div>
+              <label class="field-label" for="base64Output">输出</label>
+              <textarea id="base64Output" class="output" readonly placeholder="结果将显示在这里" spellcheck="false"></textarea>
+              <div class="btn-group" style="margin-top: 8px;">
+                <button type="button" class="btn btn-outline" id="btnCopyOut">复制输出</button>
+              </div>
+            </div>
+          </div>
+          <div class="status-msg" id="base64Status" hidden role="alert"></div>
+        </div>
+      </div>
+
+      <div class="help-block">
+        <h2>使用说明</h2>
+        <p>Base64 常用于 HTTP 传输、JWT 载荷与数据 URI。选择「编码」将普通文本转为 Base64；选择「解码」将 Base64 还原为 UTF-8 文本。本工具使用 TextEncoder/TextDecoder 处理 Unicode，中文不会出现乱码。输入输出均在本地完成。</p>
+        <ul>
+          <li>解码时会自动忽略空格与换行</li>
+          <li>非法 Base64 字符会提示解码失败</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p class="footer-note">
+        <a href="https://eppencn.com/" target="_blank" rel="noopener">eppencn.com 博客</a> ·
+        <a href="https://mcguidehub.eppencn.com/" target="_blank" rel="noopener">Minecraft 攻略</a> ·
+        <a href="privacy.html">隐私政策</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="js/ads-config.js?v=1"></script>
+  <script src="js/ads.js?v=1"></script>
+  <script src="js/common.js?v=1"></script>
+  <script src="js/base64.js?v=1"></script>
+</body>
+</html>

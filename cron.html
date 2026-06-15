@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="免费在线 Cron 表达式解析工具，说明各字段含义并预览接下来 8 次执行时间。支持标准 5 段 Unix Cron。">
+  <meta name="google-adsense-account" content="ca-pub-2045994937692573">
+  <title>Cron 表达式解析 · Eppen Tools</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=2">
+</head>
+<body data-page="cron">
+  <header class="site-header">
+    <nav class="nav container">
+      <a class="logo" href="index.html">
+        <span class="logo-icon">{ }</span>
+        <span>Eppen Tools</span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="打开菜单">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html" data-nav="home">首页</a></li>
+        <li><a href="json-formatter.html" data-nav="json">JSON</a></li>
+        <li><a href="base64.html" data-nav="base64">Base64</a></li>
+        <li><a href="timestamp.html" data-nav="timestamp">时间戳</a></li>
+        <li><a href="cron.html" data-nav="cron">Cron</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="section">
+    <div class="container">
+      <div class="page-header">
+        <h1>Cron 表达式解析</h1>
+        <p>解析标准 5 段 Unix Cron，说明各字段并预览接下来 8 次执行时间（本地时区）。</p>
+      </div>
+
+      <div class="tool-panel">
+        <div class="tool-toolbar">
+          <button type="button" class="btn btn-primary" id="btnParse">解析</button>
+          <button type="button" class="btn btn-outline" id="btnClear">清空</button>
+        </div>
+        <div class="tool-body tool-columns single">
+          <div>
+            <label class="field-label" for="cronInput">Cron 表达式（分 时 日 月 周）</label>
+            <input type="text" id="cronInput" placeholder="0 9 * * 1" spellcheck="false" autocomplete="off">
+            <p class="text-muted" style="margin: 8px 0 0; font-size: 13px;">示例：<code>0 9 * * 1</code> 每周一 9:00 · <code>*/5 * * * *</code> 每 5 分钟</p>
+          </div>
+
+          <div class="btn-group" style="margin-top: 4px;">
+            <button type="button" class="btn btn-outline" data-cron="* * * * *">每分钟</button>
+            <button type="button" class="btn btn-outline" data-cron="0 * * * *">每小时</button>
+            <button type="button" class="btn btn-outline" data-cron="0 0 * * *">每天 0 点</button>
+            <button type="button" class="btn btn-outline" data-cron="0 9 * * 1">周一 9 点</button>
+            <button type="button" class="btn btn-outline" data-cron="0 0 1 * *">每月 1 号</button>
+          </div>
+
+          <div class="status-msg" id="cronStatus" hidden role="alert"></div>
+
+          <div id="fieldDesc" hidden></div>
+          <div id="nextRuns" hidden></div>
+        </div>
+      </div>
+
+      <div class="help-block">
+        <h2>使用说明</h2>
+        <p>Cron 常用于 Linux crontab、Kubernetes CronJob、GitHub Actions schedule 等定时任务。标准 Unix 格式为 5 个字段：分钟（0-59）、小时（0-23）、日（1-31）、月（1-12）、星期（0-7，0 与 7 均为周日）。支持 <code>*</code>、<code>,</code>、<code>-</code>、<code>/</code> 及 <code>@daily</code> 等别名。</p>
+        <ul>
+          <li>当「日」和「星期」同时指定时，采用常见 crontab 语义：满足其一即执行</li>
+          <li>预览时间基于浏览器本地时区，秒固定为 0</li>
+          <li>也支持别名：<code>@hourly</code>、<code>@daily</code>、<code>@weekly</code>、<code>@monthly</code></li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p class="footer-note">
+        <a href="https://eppencn.com/" target="_blank" rel="noopener">eppencn.com 博客</a> ·
+        <a href="https://mcguidehub.eppencn.com/" target="_blank" rel="noopener">Minecraft 攻略</a> ·
+        <a href="privacy.html">隐私政策</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="js/ads-config.js?v=1"></script>
+  <script src="js/ads.js?v=1"></script>
+  <script src="js/common.js?v=1"></script>
+  <script src="js/cron.js?v=1"></script>
+</body>
+</html>

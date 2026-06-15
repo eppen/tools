@@ -79,9 +79,16 @@
     if (ALIASES[raw]) raw = ALIASES[raw];
 
     var parts = raw.replace(/\s+/g, ' ').split(' ');
+    if (parts.length === 6 || parts.length === 7) {
+      parts = parts.slice(1, 6);
+    }
     if (parts.length !== 5) {
       throw new Error('标准 Cron 为 5 段：分 时 日 月 周（例如 0 9 * * 1）');
     }
+
+    parts = parts.map(function (p) {
+      return p === '?' ? '*' : p;
+    });
 
     if (!/^[\d*,\-\/]+$/.test(parts.join(''))) {
       throw new Error('包含非法字符，仅支持数字 * , - /');
@@ -172,10 +179,6 @@
     return results;
   }
 
-  function isPlainNumber(value) {
-    return /^\d+$/.test(value);
-  }
-
   var input = document.getElementById('cronInput');
   var btnParse = document.getElementById('btnParse');
   var btnClear = document.getElementById('btnClear');
@@ -246,210 +249,311 @@
     });
   });
 
-  /* ---- Visual builder (modal) ---- */
+  /* ---- Visual builder (mes-parent style) ---- */
 
-  var cronFreq = document.getElementById('cronFreq');
-  var generatedExpr = document.getElementById('generatedExpr');
-  var btnCopyExpr = document.getElementById('btnCopyExpr');
+  var BUILDER_KEYS = ['minute', 'hour', 'day', 'month', 'week'];
+  var BUILDER_TABS = ['分钟', '小时', '日', '月', '周'];
+  var BUILDER_EVERY = ['每分钟', '每小时', '每天', '每月', '每周'];
+  var BUILDER_UNITS = ['分钟', '小时', '天', '月', ''];
+  var BUILDER_META = [
+    { min: 0, max: 59 },
+    { min: 0, max: 23 },
+    { min: 1, max: 31 },
+    { min: 1, max: 12 },
+    { min: 0, max: 6, week: true }
+  ];
+
+  var cronBuilder = document.getElementById('cronBuilder');
   var btnOpenBuilder = document.getElementById('btnOpenBuilder');
   var cronModal = document.getElementById('cronModal');
   var cronModalBackdrop = document.getElementById('cronModalBackdrop');
   var btnCloseModal = document.getElementById('btnCloseModal');
   var btnCancelModal = document.getElementById('btnCancelModal');
   var btnApplyModal = document.getElementById('btnApplyModal');
+  var generatedExpr = null;
+  var builderNextRuns = null;
+  var btnCopyExpr = null;
 
-  function fillSelect(el, min, max) {
-    if (!el) return;
-    el.innerHTML = '';
-    for (var i = min; i <= max; i++) {
-      var opt = document.createElement('option');
-      opt.value = String(i);
-      opt.textContent = pad(i);
-      el.appendChild(opt);
-    }
-  }
-
-  function initWeeklyDow() {
-    var container = document.getElementById('weeklyDow');
-    if (!container || container.children.length) return;
-    for (var d = 0; d <= 6; d++) {
-      var label = document.createElement('label');
-      label.className = 'cron-dow-item';
-      var cb = document.createElement('input');
-      cb.type = 'checkbox';
-      cb.value = String(d);
-      cb.checked = d === 1;
-      label.appendChild(cb);
-      label.appendChild(document.createTextNode('周' + DOW_NAMES[d]));
-      container.appendChild(label);
-    }
-  }
-
-  function initCustomFields() {
-    var container = document.getElementById('customFields');
-    if (!container || container.children.length) return;
-    var labels = ['分钟', '小时', '日', '月', '星期'];
-    labels.forEach(function (name, i) {
-      var row = document.createElement('div');
-      row.className = 'cron-custom-row';
-
-      var lbl = document.createElement('label');
-      lbl.textContent = name;
-
-      var inp = document.createElement('input');
-      inp.type = 'text';
-      inp.className = 'cron-custom-val';
-      inp.value = '*';
-      inp.spellcheck = false;
-      inp.autocomplete = 'off';
-
-      var hint = document.createElement('span');
-      hint.className = 'text-muted';
-      hint.style.fontSize = '12px';
-      hint.textContent = '范围 ' + FIELD_META[i].min + '–' + FIELD_META[i].max;
-
-      row.appendChild(lbl);
-      row.appendChild(inp);
-      row.appendChild(hint);
-      container.appendChild(row);
-    });
-  }
-
-  function setSelectValue(id, value) {
-    var el = document.getElementById(id);
-    if (el) el.value = String(value);
-  }
-
-  function setWeeklyDow(dowStr) {
-    var days = dowStr.split(',');
-    document.querySelectorAll('#weeklyDow input').forEach(function (cb) {
-      cb.checked = days.indexOf(cb.value) !== -1;
-    });
-  }
-
-  function setCustomFields(parts) {
-    document.querySelectorAll('#customFields .cron-custom-val').forEach(function (inp, i) {
-      inp.value = parts[i] || '*';
-    });
-  }
-
-  function getWeeklyDow() {
-    var checked = [];
-    document.querySelectorAll('#weeklyDow input:checked').forEach(function (cb) {
-      checked.push(cb.value);
-    });
-    return checked.length ? checked.join(',') : '1';
-  }
-
-  function buildFromVisual() {
-    if (!cronFreq) return '* * * * *';
-
-    switch (cronFreq.value) {
-      case 'every_minute':
-        return '* * * * *';
-      case 'hourly':
-        return (document.getElementById('hourlyMinute').value || '0') + ' * * * *';
-      case 'daily':
-        return (document.getElementById('dailyMinute').value || '0') + ' ' +
-          (document.getElementById('dailyHour').value || '0') + ' * * *';
-      case 'weekly':
-        return (document.getElementById('weeklyMinute').value || '0') + ' ' +
-          (document.getElementById('weeklyHour').value || '0') + ' * * ' + getWeeklyDow();
-      case 'monthly':
-        return (document.getElementById('monthlyMinute').value || '0') + ' ' +
-          (document.getElementById('monthlyHour').value || '0') + ' ' +
-          (document.getElementById('monthlyDay').value || '1') + ' * *';
-      case 'custom': {
-        var parts = [];
-        document.querySelectorAll('#customFields .cron-custom-val').forEach(function (inp) {
-          parts.push((inp.value || '').trim() || '*');
-        });
-        return parts.length === 5 ? parts.join(' ') : '* * * * *';
-      }
-      default:
-        return '* * * * *';
-    }
-  }
-
-  function showFreqOptions(freq) {
-    var map = {
-      hourly: 'optHourly',
-      daily: 'optDaily',
-      weekly: 'optWeekly',
-      monthly: 'optMonthly',
-      custom: 'optCustom'
+  function defaultFieldState(meta) {
+    return {
+      type: 'every',
+      intervalStart: meta.min,
+      intervalEnd: Math.min(meta.min + 5, meta.max),
+      stepStart: meta.min,
+      stepValue: meta.min === 0 ? 5 : 1,
+      specificValues: []
     };
-    Object.keys(map).forEach(function (key) {
-      var el = document.getElementById(map[key]);
-      if (el) el.hidden = freq !== key;
+  }
+
+  function normalizeUnixParts(expr) {
+    var raw = (expr || '').trim().toLowerCase();
+    if (!raw) return null;
+    if (ALIASES[raw]) raw = ALIASES[raw];
+    var parts = raw.replace(/\s+/g, ' ').split(' ');
+    if (parts.length === 6 || parts.length === 7) parts = parts.slice(1, 6);
+    if (parts.length !== 5) return null;
+    return parts.map(function (p) { return p === '?' ? '*' : p; });
+  }
+
+  function parsePartToState(part, meta) {
+    var state = defaultFieldState(meta);
+    part = (part || '*').trim();
+    if (part === '*' || part === '?') {
+      state.type = 'every';
+      return state;
+    }
+    if (part.indexOf('/') !== -1) {
+      var slash = part.split('/');
+      state.type = 'step';
+      state.stepStart = slash[0] === '*' ? meta.min : parseInt(slash[0], 10);
+      state.stepValue = parseInt(slash[1], 10) || 1;
+      return state;
+    }
+    if (part.indexOf('-') !== -1) {
+      var dash = part.split('-');
+      state.type = 'interval';
+      state.intervalStart = parseInt(dash[0], 10);
+      state.intervalEnd = parseInt(dash[1], 10);
+      return state;
+    }
+    if (part.indexOf(',') !== -1) {
+      state.type = 'specific';
+      state.specificValues = part.split(',').map(function (v) { return parseInt(v, 10); });
+      return state;
+    }
+    state.type = 'specific';
+    state.specificValues = [parseInt(part, 10)];
+    return state;
+  }
+
+  function buildPartFromState(state, meta) {
+    if (state.type === 'every') return '*';
+    if (state.type === 'interval') {
+      return state.intervalStart + '-' + state.intervalEnd;
+    }
+    if (state.type === 'step') {
+      if (state.stepStart === meta.min) return '*/' + state.stepValue;
+      return state.stepStart + '/' + state.stepValue;
+    }
+    if (state.type === 'specific' && state.specificValues.length) {
+      return state.specificValues.slice().sort(function (a, b) { return a - b; }).join(',');
+    }
+    return '*';
+  }
+
+  function isFieldRestricted(state) {
+    if (state.type === 'every') return false;
+    if (state.type === 'specific') return state.specificValues.length > 0;
+    return true;
+  }
+
+  function readFieldState(key) {
+    var panel = cronBuilder.querySelector('.cron-tab-panel[data-field="' + key + '"]');
+    if (!panel) return defaultFieldState(BUILDER_META[BUILDER_KEYS.indexOf(key)]);
+
+    var meta = BUILDER_META[BUILDER_KEYS.indexOf(key)];
+    var typeInput = panel.querySelector('input[name="' + key + '-type"]:checked');
+    var state = defaultFieldState(meta);
+    state.type = typeInput ? typeInput.value : 'every';
+
+    var intervalStart = panel.querySelector('[data-bind="' + key + '.intervalStart"]');
+    var intervalEnd = panel.querySelector('[data-bind="' + key + '.intervalEnd"]');
+    var stepStart = panel.querySelector('[data-bind="' + key + '.stepStart"]');
+    var stepValue = panel.querySelector('[data-bind="' + key + '.stepValue"]');
+
+    if (intervalStart) state.intervalStart = parseInt(intervalStart.value, 10);
+    if (intervalEnd) state.intervalEnd = parseInt(intervalEnd.value, 10);
+    if (stepStart) state.stepStart = parseInt(stepStart.value, 10);
+    if (stepValue) state.stepValue = parseInt(stepValue.value, 10);
+
+    state.specificValues = [];
+    panel.querySelectorAll('.cron-specific-grid input:checked').forEach(function (cb) {
+      state.specificValues.push(parseInt(cb.value, 10));
     });
+
+    return state;
+  }
+
+  function applyFieldState(key, state) {
+    var panel = cronBuilder.querySelector('.cron-tab-panel[data-field="' + key + '"]');
+    if (!panel) return;
+
+    var radio = panel.querySelector('input[name="' + key + '-type"][value="' + state.type + '"]');
+    if (radio) radio.checked = true;
+
+    var intervalStart = panel.querySelector('[data-bind="' + key + '.intervalStart"]');
+    var intervalEnd = panel.querySelector('[data-bind="' + key + '.intervalEnd"]');
+    var stepStart = panel.querySelector('[data-bind="' + key + '.stepStart"]');
+    var stepValue = panel.querySelector('[data-bind="' + key + '.stepValue"]');
+
+    if (intervalStart) intervalStart.value = state.intervalStart;
+    if (intervalEnd) intervalEnd.value = state.intervalEnd;
+    if (stepStart) stepStart.value = state.stepStart;
+    if (stepValue) stepValue.value = state.stepValue;
+
+    panel.querySelectorAll('.cron-specific-grid input').forEach(function (cb) {
+      cb.checked = state.specificValues.indexOf(parseInt(cb.value, 10)) !== -1;
+    });
+
+    toggleSpecificGrid(key);
+  }
+
+  function toggleSpecificGrid(key) {
+    var panel = cronBuilder.querySelector('.cron-tab-panel[data-field="' + key + '"]');
+    if (!panel) return;
+    var type = panel.querySelector('input[name="' + key + '-type"]:checked');
+    var grid = panel.querySelector('.cron-specific-grid');
+    if (grid) grid.hidden = !type || type.value !== 'specific';
+  }
+
+  function buildExpressionFromBuilder() {
+    var parts = BUILDER_KEYS.map(function (key, i) {
+      return buildPartFromState(readFieldState(key), BUILDER_META[i]);
+    });
+
+    var dayState = readFieldState('day');
+    var weekState = readFieldState('week');
+    if (isFieldRestricted(weekState)) parts[2] = '*';
+    if (isFieldRestricted(dayState)) parts[4] = '*';
+
+    return parts.join(' ');
+  }
+
+  function renderSpecificGrid(meta) {
+    var html = '<div class="cron-specific-grid" hidden>';
+    for (var v = meta.min; v <= meta.max; v++) {
+      var label = meta.week ? ('周' + DOW_NAMES[v]) : String(v);
+      html += '<label class="cron-specific-item"><input type="checkbox" value="' + v + '">' + label + '</label>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function renderFieldPanel(key, index) {
+    var meta = BUILDER_META[index];
+    var unit = BUILDER_UNITS[index];
+    var html = '<div class="cron-tab-panel' + (index === 0 ? ' active' : '') + '" data-field="' + key + '">';
+    html += '<div class="cron-section">';
+    html += '<label class="cron-radio-row"><input type="radio" name="' + key + '-type" value="every" checked> ' + BUILDER_EVERY[index] + '</label>';
+
+    html += '<label class="cron-radio-row"><input type="radio" name="' + key + '-type" value="interval"> 每隔 ';
+    html += '<input type="number" class="cron-inline-input" data-bind="' + key + '.intervalStart" min="' + meta.min + '" max="' + meta.max + '" value="' + meta.min + '"> - ';
+    html += '<input type="number" class="cron-inline-input" data-bind="' + key + '.intervalEnd" min="' + meta.min + '" max="' + meta.max + '" value="' + Math.min(meta.min + 5, meta.max) + '">';
+    if (unit) html += ' ' + unit;
+    html += '</label>';
+
+    html += '<label class="cron-radio-row"><input type="radio" name="' + key + '-type" value="step"> 从 ';
+    html += '<input type="number" class="cron-inline-input" data-bind="' + key + '.stepStart" min="' + meta.min + '" max="' + meta.max + '" value="' + meta.min + '"> 开始，每 ';
+    html += '<input type="number" class="cron-inline-input" data-bind="' + key + '.stepValue" min="1" max="' + meta.max + '" value="' + (meta.min === 0 ? 5 : 1) + '">';
+    if (unit) html += ' ' + unit;
+    html += ' 执行一次</label>';
+
+    html += '<label class="cron-radio-row"><input type="radio" name="' + key + '-type" value="specific"> 指定</label>';
+    html += renderSpecificGrid(meta);
+    html += '</div></div>';
+    return html;
+  }
+
+  function renderBuilder() {
+    if (!cronBuilder) return;
+
+    var html = '<ul class="cron-field-tabs" role="tablist">';
+    BUILDER_TABS.forEach(function (label, i) {
+      html += '<li><button type="button" class="cron-field-tab' + (i === 0 ? ' active' : '') + '" data-tab="' + BUILDER_KEYS[i] + '" role="tab">' + label + '</button></li>';
+    });
+    html += '</ul><div class="cron-tab-panels">';
+    BUILDER_KEYS.forEach(function (key, i) {
+      html += renderFieldPanel(key, i);
+    });
+    html += '</div>';
+
+    html += '<div class="cron-output">';
+    html += '<div class="cron-output-main"><h4 class="cron-output-title">生成的 Cron 表达式</h4>';
+    html += '<code id="generatedExpr" class="cron-expr-preview">0 0 * * *</code>';
+    html += '<button type="button" class="btn btn-outline btn-sm" id="btnCopyExpr">复制</button></div>';
+    html += '<div class="cron-output-side"><h4 class="cron-output-title">表达式说明</h4>';
+    html += '<p class="text-muted cron-output-desc">Unix Cron 为 5 段：<code>分 时 日 月 周</code></p>';
+    html += '<ul class="cron-help-list"><li><code>*</code> 表示所有可能的值</li>';
+    html += '<li><code>-</code> 表示范围，如 1-5</li>';
+    html += '<li><code>/</code> 表示步长，如 */5 每 5 单位</li>';
+    html += '<li><code>,</code> 表示列举多个值</li></ul></div></div>';
+    html += '<div class="cron-builder-runs" id="builderNextRuns" hidden></div>';
+
+    cronBuilder.innerHTML = html;
+    generatedExpr = document.getElementById('generatedExpr');
+    builderNextRuns = document.getElementById('builderNextRuns');
+    btnCopyExpr = document.getElementById('btnCopyExpr');
+  }
+
+  function switchBuilderTab(key) {
+    cronBuilder.querySelectorAll('.cron-field-tab').forEach(function (btn) {
+      btn.classList.toggle('active', btn.getAttribute('data-tab') === key);
+    });
+    cronBuilder.querySelectorAll('.cron-tab-panel').forEach(function (panel) {
+      panel.classList.toggle('active', panel.getAttribute('data-field') === key);
+    });
+  }
+
+  function renderBuilderNextRuns(expr) {
+    if (!builderNextRuns) return;
+    try {
+      var parsed = parseExpression(expr);
+      var runs = getNextRuns(parsed.fields, 5, new Date());
+      var html = '<h4 class="cron-output-title">最近 5 次运行时间</h4><ul class="cron-runs-inline">';
+      runs.forEach(function (d) {
+        html += '<li><code>' + formatDate(d) + '</code></li>';
+      });
+      html += '</ul>';
+      builderNextRuns.innerHTML = html;
+      builderNextRuns.hidden = false;
+    } catch (e) {
+      builderNextRuns.innerHTML = '';
+      builderNextRuns.hidden = true;
+    }
   }
 
   function updatePreview() {
-    var expr = buildFromVisual();
+    var expr = buildExpressionFromBuilder();
     if (generatedExpr) generatedExpr.textContent = expr;
+    renderBuilderNextRuns(expr);
     return expr;
   }
 
   function loadVisualFromExpression(expr) {
-    if (!cronFreq) return;
-
-    var raw = (expr || '').trim().toLowerCase();
-    if (ALIASES[raw]) raw = ALIASES[raw];
-
-    if (!raw) {
-      cronFreq.value = 'daily';
-      showFreqOptions('daily');
+    var parts = normalizeUnixParts(expr);
+    if (!parts) {
+      BUILDER_KEYS.forEach(function (key, i) {
+        applyFieldState(key, defaultFieldState(BUILDER_META[i]));
+      });
       updatePreview();
       return;
     }
 
-    var parts = raw.replace(/\s+/g, ' ').split(' ');
-    if (parts.length !== 5) {
-      cronFreq.value = 'custom';
-      showFreqOptions('custom');
-      setCustomFields(['*', '*', '*', '*', '*']);
-      updatePreview();
-      return;
+    BUILDER_KEYS.forEach(function (key, i) {
+      applyFieldState(key, parsePartToState(parts[i], BUILDER_META[i]));
+    });
+    updatePreview();
+  }
+
+  function onBuilderChange(e) {
+    var target = e.target;
+    if (target.matches('input[name$="-type"]')) {
+      var key = target.name.replace('-type', '');
+      toggleSpecificGrid(key);
+      if (key === 'week' && target.value === 'specific') {
+        applyFieldState('day', defaultFieldState(BUILDER_META[2]));
+      }
+      if (key === 'day' && target.value !== 'every') {
+        applyFieldState('week', defaultFieldState(BUILDER_META[4]));
+      }
     }
-
-    var minute = parts[0];
-    var hour = parts[1];
-    var dom = parts[2];
-    var month = parts[3];
-    var dow = parts[4];
-
-    if (minute === '*' && hour === '*' && dom === '*' && month === '*' && dow === '*') {
-      cronFreq.value = 'every_minute';
-    } else if (isPlainNumber(minute) && hour === '*' && dom === '*' && month === '*' && dow === '*') {
-      cronFreq.value = 'hourly';
-      setSelectValue('hourlyMinute', minute);
-    } else if (isPlainNumber(minute) && isPlainNumber(hour) && dom === '*' && month === '*' && dow === '*') {
-      cronFreq.value = 'daily';
-      setSelectValue('dailyMinute', minute);
-      setSelectValue('dailyHour', hour);
-    } else if (isPlainNumber(minute) && isPlainNumber(hour) && dom === '*' && month === '*' && dow !== '*') {
-      cronFreq.value = 'weekly';
-      setSelectValue('weeklyMinute', minute);
-      setSelectValue('weeklyHour', hour);
-      setWeeklyDow(dow);
-    } else if (isPlainNumber(minute) && isPlainNumber(hour) && isPlainNumber(dom) && month === '*' && dow === '*') {
-      cronFreq.value = 'monthly';
-      setSelectValue('monthlyMinute', minute);
-      setSelectValue('monthlyHour', hour);
-      setSelectValue('monthlyDay', dom);
-    } else {
-      cronFreq.value = 'custom';
-      setCustomFields(parts);
-    }
-
-    showFreqOptions(cronFreq.value);
     updatePreview();
   }
 
   function openModal() {
     if (!cronModal) return;
     loadVisualFromExpression(input ? input.value : '');
+    switchBuilderTab('minute');
     cronModal.hidden = false;
     document.body.style.overflow = 'hidden';
   }
@@ -468,33 +572,16 @@
   }
 
   function initBuilder() {
-    fillSelect(document.getElementById('hourlyMinute'), 0, 59);
-    fillSelect(document.getElementById('dailyHour'), 0, 23);
-    fillSelect(document.getElementById('dailyMinute'), 0, 59);
-    fillSelect(document.getElementById('weeklyHour'), 0, 23);
-    fillSelect(document.getElementById('weeklyMinute'), 0, 59);
-    fillSelect(document.getElementById('monthlyDay'), 1, 31);
-    fillSelect(document.getElementById('monthlyHour'), 0, 23);
-    fillSelect(document.getElementById('monthlyMinute'), 0, 59);
+    if (!cronBuilder) return;
+    renderBuilder();
 
-    initWeeklyDow();
-    initCustomFields();
-    showFreqOptions(cronFreq.value);
-
-    cronFreq.addEventListener('change', function () {
-      showFreqOptions(cronFreq.value);
-      updatePreview();
+    cronBuilder.addEventListener('click', function (e) {
+      var tab = e.target.closest('.cron-field-tab');
+      if (tab) switchBuilderTab(tab.getAttribute('data-tab'));
     });
 
-    document.querySelectorAll('.cron-builder select').forEach(function (el) {
-      el.addEventListener('change', updatePreview);
-    });
-
-    var weeklyDow = document.getElementById('weeklyDow');
-    if (weeklyDow) weeklyDow.addEventListener('change', updatePreview);
-
-    var customFields = document.getElementById('customFields');
-    if (customFields) customFields.addEventListener('input', updatePreview);
+    cronBuilder.addEventListener('change', onBuilderChange);
+    cronBuilder.addEventListener('input', onBuilderChange);
 
     if (btnOpenBuilder) btnOpenBuilder.addEventListener('click', openModal);
     if (btnCloseModal) btnCloseModal.addEventListener('click', closeModal);
@@ -502,9 +589,9 @@
     if (cronModalBackdrop) cronModalBackdrop.addEventListener('click', closeModal);
     if (btnApplyModal) btnApplyModal.addEventListener('click', applyModal);
 
-    if (btnCopyExpr && generatedExpr) {
+    if (btnCopyExpr) {
       btnCopyExpr.addEventListener('click', function () {
-        ToolsCommon.copyText(generatedExpr.textContent);
+        if (generatedExpr) ToolsCommon.copyText(generatedExpr.textContent);
       });
     }
 
@@ -513,6 +600,6 @@
     });
   }
 
-  if (cronFreq) initBuilder();
+  if (cronBuilder) initBuilder();
   if (input && input.value) parse();
 })();

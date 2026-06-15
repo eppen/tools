@@ -3,6 +3,7 @@
 
   var toastEl = null;
   var toastTimer = null;
+  var THEME_KEY = 'eppen-tools-theme';
 
   function initNav() {
     var navToggle = document.getElementById('navToggle');
@@ -98,16 +99,78 @@
     el.className = 'status-msg ' + (type || '');
   }
 
+  function getTheme() {
+    var theme = document.documentElement.getAttribute('data-theme');
+    return theme === 'light' ? 'light' : 'dark';
+  }
+
+  function updateThemeToggle(theme) {
+    var btn = document.getElementById('themeToggle');
+    if (!btn) return;
+    if (theme === 'light') {
+      btn.setAttribute('aria-label', '切换暗色主题');
+      btn.title = '切换暗色主题';
+    } else {
+      btn.setAttribute('aria-label', '切换亮色主题');
+      btn.title = '切换亮色主题';
+    }
+  }
+
+  function setTheme(theme) {
+    var next = theme === 'light' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    try {
+      localStorage.setItem(THEME_KEY, next);
+    } catch (e) { /* ignore */ }
+    updateThemeToggle(next);
+  }
+
+  function toggleTheme() {
+    setTheme(getTheme() === 'dark' ? 'light' : 'dark');
+  }
+
+  function initTheme() {
+    updateThemeToggle(getTheme());
+
+    var btn = document.getElementById('themeToggle');
+    if (btn) btn.addEventListener('click', toggleTheme);
+
+    if (window.matchMedia) {
+      var media = window.matchMedia('(prefers-color-scheme: light)');
+      var onChange = function (e) {
+        try {
+          if (localStorage.getItem(THEME_KEY)) return;
+        } catch (err) { /* ignore */ }
+        setTheme(e.matches ? 'light' : 'dark');
+      };
+
+      if (media.addEventListener) {
+        media.addEventListener('change', onChange);
+      } else if (media.addListener) {
+        media.addListener(onChange);
+      }
+    }
+  }
+
   window.ToolsCommon = {
     initNav: initNav,
+    initTheme: initTheme,
     showToast: showToast,
     copyText: copyText,
-    showStatus: showStatus
+    showStatus: showStatus,
+    getTheme: getTheme,
+    setTheme: setTheme,
+    toggleTheme: toggleTheme
   };
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initNav);
-  } else {
+  function initAll() {
     initNav();
+    initTheme();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAll);
+  } else {
+    initAll();
   }
 })();

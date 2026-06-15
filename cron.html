@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=4">
+  <link rel="stylesheet" href="css/style.css?v=5">
 </head>
 <body data-page="cron">
   <header class="site-header">
@@ -35,79 +35,10 @@
     <div class="container">
       <div class="page-header">
         <h1>Cron 表达式工具</h1>
-        <p>图形化配置或手动输入 Cron 表达式，说明各字段并预览接下来 8 次执行时间。</p>
+        <p>输入 Cron 表达式解析执行时间，或点击右侧按钮打开图形配置快速生成。</p>
       </div>
 
-      <div class="mode-tabs btn-group cron-mode-tabs">
-        <button type="button" class="btn btn-outline active" id="tabVisual" data-tab="visual">图形配置</button>
-        <button type="button" class="btn btn-outline" id="tabExpr" data-tab="expr">表达式</button>
-      </div>
-
-      <div class="tool-panel cron-panel" id="panelVisual">
-        <div class="tool-body">
-          <div class="cron-builder">
-            <div class="cron-builder-row">
-              <label class="field-label" for="cronFreq">执行频率</label>
-              <select id="cronFreq" class="cron-select">
-                <option value="every_minute">每分钟</option>
-                <option value="hourly">每小时</option>
-                <option value="daily" selected>每天</option>
-                <option value="weekly">每周</option>
-                <option value="monthly">每月</option>
-                <option value="custom">自定义各字段</option>
-              </select>
-            </div>
-
-            <div class="cron-options" id="optHourly" hidden>
-              <label class="field-label" for="hourlyMinute">在第几分钟</label>
-              <select id="hourlyMinute" class="cron-select cron-select-sm"></select>
-            </div>
-
-            <div class="cron-options" id="optDaily">
-              <label class="field-label">执行时间</label>
-              <div class="cron-time-row">
-                <select id="dailyHour" class="cron-select cron-select-sm"></select>
-                <span class="cron-time-sep">:</span>
-                <select id="dailyMinute" class="cron-select cron-select-sm"></select>
-              </div>
-            </div>
-
-            <div class="cron-options" id="optWeekly" hidden>
-              <label class="field-label">执行时间</label>
-              <div class="cron-time-row">
-                <select id="weeklyHour" class="cron-select cron-select-sm"></select>
-                <span class="cron-time-sep">:</span>
-                <select id="weeklyMinute" class="cron-select cron-select-sm"></select>
-              </div>
-              <label class="field-label" style="margin-top: 12px;">星期</label>
-              <div class="cron-dow-grid" id="weeklyDow"></div>
-            </div>
-
-            <div class="cron-options" id="optMonthly" hidden>
-              <label class="field-label" for="monthlyDay">每月第几天</label>
-              <select id="monthlyDay" class="cron-select cron-select-sm"></select>
-              <label class="field-label" style="margin-top: 12px;">执行时间</label>
-              <div class="cron-time-row">
-                <select id="monthlyHour" class="cron-select cron-select-sm"></select>
-                <span class="cron-time-sep">:</span>
-                <select id="monthlyMinute" class="cron-select cron-select-sm"></select>
-              </div>
-            </div>
-
-            <div class="cron-options" id="optCustom" hidden>
-              <div class="cron-custom-grid" id="customFields"></div>
-            </div>
-
-            <div class="cron-generated">
-              <label class="field-label">生成的表达式</label>
-              <code id="generatedExpr" class="cron-expr-preview">0 0 * * *</code>
-              <button type="button" class="btn btn-outline btn-sm" id="btnCopyExpr">复制</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="tool-panel cron-panel" id="panelExpr" hidden>
+      <div class="tool-panel">
         <div class="tool-toolbar">
           <button type="button" class="btn btn-primary" id="btnParse">解析</button>
           <button type="button" class="btn btn-outline" id="btnClear">清空</button>
@@ -115,7 +46,13 @@
         <div class="tool-body tool-columns single">
           <div>
             <label class="field-label" for="cronInput">Cron 表达式（分 时 日 月 周）</label>
-            <input type="text" id="cronInput" placeholder="0 9 * * 1" spellcheck="false" autocomplete="off">
+            <div class="input-group">
+              <input type="text" id="cronInput" value="0 0 * * *" placeholder="0 9 * * 1" spellcheck="false" autocomplete="off">
+              <button type="button" class="input-group-addon btn btn-outline" id="btnOpenBuilder" title="图形配置" aria-label="打开图形配置">
+                <span class="addon-icon" aria-hidden="true">⏱</span>
+                <span class="addon-text">图形配置</span>
+              </button>
+            </div>
             <p class="text-muted" style="margin: 8px 0 0; font-size: 13px;">示例：<code>0 9 * * 1</code> 每周一 9:00 · <code>*/5 * * * *</code> 每 5 分钟</p>
           </div>
 
@@ -129,7 +66,7 @@
         </div>
       </div>
 
-      <div class="tool-panel cron-results-panel">
+      <div class="tool-panel">
         <div class="tool-body tool-columns single">
           <div class="status-msg" id="cronStatus" hidden role="alert"></div>
           <div id="fieldDesc" hidden></div>
@@ -139,7 +76,7 @@
 
       <div class="help-block">
         <h2>使用说明</h2>
-        <p>Cron 常用于 Linux crontab、Kubernetes CronJob、GitHub Actions schedule 等定时任务。可使用<strong>图形配置</strong>快速生成表达式，或切换到<strong>表达式</strong>标签手动输入。标准 Unix 格式为 5 个字段：分钟、小时、日、月、星期。</p>
+        <p>Cron 常用于 Linux crontab、Kubernetes CronJob、GitHub Actions schedule 等定时任务。在输入框右侧点击<strong>图形配置</strong>可弹窗快速生成表达式。标准 Unix 格式为 5 个字段：分钟、小时、日、月、星期。</p>
         <ul>
           <li>图形配置支持：每分钟 / 每小时 / 每天 / 每周 / 每月 / 自定义各字段</li>
           <li>当「日」和「星期」同时指定时，采用常见 crontab 语义：满足其一即执行</li>
@@ -148,6 +85,81 @@
       </div>
     </div>
   </main>
+
+  <div class="cron-modal" id="cronModal" hidden role="dialog" aria-modal="true" aria-labelledby="cronModalTitle">
+    <div class="cron-modal-backdrop" id="cronModalBackdrop"></div>
+    <div class="cron-modal-dialog">
+      <div class="cron-modal-header">
+        <h3 id="cronModalTitle">Cron 图形配置</h3>
+        <button type="button" class="cron-modal-close" id="btnCloseModal" aria-label="关闭">&times;</button>
+      </div>
+      <div class="cron-modal-body">
+        <div class="cron-builder">
+          <div class="cron-builder-row">
+            <label class="field-label" for="cronFreq">执行频率</label>
+            <select id="cronFreq" class="cron-select">
+              <option value="every_minute">每分钟</option>
+              <option value="hourly">每小时</option>
+              <option value="daily" selected>每天</option>
+              <option value="weekly">每周</option>
+              <option value="monthly">每月</option>
+              <option value="custom">自定义各字段</option>
+            </select>
+          </div>
+
+          <div class="cron-options" id="optHourly" hidden>
+            <label class="field-label" for="hourlyMinute">在第几分钟</label>
+            <select id="hourlyMinute" class="cron-select cron-select-sm"></select>
+          </div>
+
+          <div class="cron-options" id="optDaily">
+            <label class="field-label">执行时间</label>
+            <div class="cron-time-row">
+              <select id="dailyHour" class="cron-select cron-select-sm"></select>
+              <span class="cron-time-sep">:</span>
+              <select id="dailyMinute" class="cron-select cron-select-sm"></select>
+            </div>
+          </div>
+
+          <div class="cron-options" id="optWeekly" hidden>
+            <label class="field-label">执行时间</label>
+            <div class="cron-time-row">
+              <select id="weeklyHour" class="cron-select cron-select-sm"></select>
+              <span class="cron-time-sep">:</span>
+              <select id="weeklyMinute" class="cron-select cron-select-sm"></select>
+            </div>
+            <label class="field-label" style="margin-top: 12px;">星期</label>
+            <div class="cron-dow-grid" id="weeklyDow"></div>
+          </div>
+
+          <div class="cron-options" id="optMonthly" hidden>
+            <label class="field-label" for="monthlyDay">每月第几天</label>
+            <select id="monthlyDay" class="cron-select cron-select-sm"></select>
+            <label class="field-label" style="margin-top: 12px;">执行时间</label>
+            <div class="cron-time-row">
+              <select id="monthlyHour" class="cron-select cron-select-sm"></select>
+              <span class="cron-time-sep">:</span>
+              <select id="monthlyMinute" class="cron-select cron-select-sm"></select>
+            </div>
+          </div>
+
+          <div class="cron-options" id="optCustom" hidden>
+            <div class="cron-custom-grid" id="customFields"></div>
+          </div>
+
+          <div class="cron-generated">
+            <label class="field-label">预览表达式</label>
+            <code id="generatedExpr" class="cron-expr-preview">0 0 * * *</code>
+            <button type="button" class="btn btn-outline btn-sm" id="btnCopyExpr">复制</button>
+          </div>
+        </div>
+      </div>
+      <div class="cron-modal-footer">
+        <button type="button" class="btn btn-outline" id="btnCancelModal">取消</button>
+        <button type="button" class="btn btn-primary" id="btnApplyModal">确定</button>
+      </div>
+    </div>
+  </div>
 
   <footer class="site-footer">
     <div class="container footer-inner">
@@ -162,6 +174,6 @@
   <script src="js/ads-config.js?v=1"></script>
   <script src="js/ads.js?v=1"></script>
   <script src="js/common.js?v=1"></script>
-  <script src="js/cron.js?v=3"></script>
+  <script src="js/cron.js?v=4"></script>
 </body>
 </html>

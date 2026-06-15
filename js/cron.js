@@ -172,6 +172,10 @@
     return results;
   }
 
+  function isPlainNumber(value) {
+    return /^\d+$/.test(value);
+  }
+
   var input = document.getElementById('cronInput');
   var btnParse = document.getElementById('btnParse');
   var btnClear = document.getElementById('btnClear');
@@ -242,15 +246,17 @@
     });
   });
 
-  /* ---- Visual builder ---- */
+  /* ---- Visual builder (modal) ---- */
 
   var cronFreq = document.getElementById('cronFreq');
   var generatedExpr = document.getElementById('generatedExpr');
   var btnCopyExpr = document.getElementById('btnCopyExpr');
-  var tabVisual = document.getElementById('tabVisual');
-  var tabExpr = document.getElementById('tabExpr');
-  var panelVisual = document.getElementById('panelVisual');
-  var panelExpr = document.getElementById('panelExpr');
+  var btnOpenBuilder = document.getElementById('btnOpenBuilder');
+  var cronModal = document.getElementById('cronModal');
+  var cronModalBackdrop = document.getElementById('cronModalBackdrop');
+  var btnCloseModal = document.getElementById('btnCloseModal');
+  var btnCancelModal = document.getElementById('btnCancelModal');
+  var btnApplyModal = document.getElementById('btnApplyModal');
 
   function fillSelect(el, min, max) {
     if (!el) return;
@@ -309,6 +315,24 @@
     });
   }
 
+  function setSelectValue(id, value) {
+    var el = document.getElementById(id);
+    if (el) el.value = String(value);
+  }
+
+  function setWeeklyDow(dowStr) {
+    var days = dowStr.split(',');
+    document.querySelectorAll('#weeklyDow input').forEach(function (cb) {
+      cb.checked = days.indexOf(cb.value) !== -1;
+    });
+  }
+
+  function setCustomFields(parts) {
+    document.querySelectorAll('#customFields .cron-custom-val').forEach(function (inp, i) {
+      inp.value = parts[i] || '*';
+    });
+  }
+
   function getWeeklyDow() {
     var checked = [];
     document.querySelectorAll('#weeklyDow input:checked').forEach(function (cb) {
@@ -323,27 +347,18 @@
     switch (cronFreq.value) {
       case 'every_minute':
         return '* * * * *';
-      case 'hourly': {
-        var hm = document.getElementById('hourlyMinute');
-        return (hm ? hm.value : '0') + ' * * * *';
-      }
-      case 'daily': {
-        var dh = document.getElementById('dailyHour');
-        var dm = document.getElementById('dailyMinute');
-        return (dm ? dm.value : '0') + ' ' + (dh ? dh.value : '0') + ' * * *';
-      }
-      case 'weekly': {
-        var wh = document.getElementById('weeklyHour');
-        var wm = document.getElementById('weeklyMinute');
-        return (wm ? wm.value : '0') + ' ' + (wh ? wh.value : '0') + ' * * ' + getWeeklyDow();
-      }
-      case 'monthly': {
-        var md = document.getElementById('monthlyDay');
-        var mh = document.getElementById('monthlyHour');
-        var mm = document.getElementById('monthlyMinute');
-        return (mm ? mm.value : '0') + ' ' + (mh ? mh.value : '0') + ' ' +
-          (md ? md.value : '1') + ' * *';
-      }
+      case 'hourly':
+        return (document.getElementById('hourlyMinute').value || '0') + ' * * * *';
+      case 'daily':
+        return (document.getElementById('dailyMinute').value || '0') + ' ' +
+          (document.getElementById('dailyHour').value || '0') + ' * * *';
+      case 'weekly':
+        return (document.getElementById('weeklyMinute').value || '0') + ' ' +
+          (document.getElementById('weeklyHour').value || '0') + ' * * ' + getWeeklyDow();
+      case 'monthly':
+        return (document.getElementById('monthlyMinute').value || '0') + ' ' +
+          (document.getElementById('monthlyHour').value || '0') + ' ' +
+          (document.getElementById('monthlyDay').value || '1') + ' * *';
       case 'custom': {
         var parts = [];
         document.querySelectorAll('#customFields .cron-custom-val').forEach(function (inp) {
@@ -370,24 +385,86 @@
     });
   }
 
-  function syncAndParse() {
+  function updatePreview() {
     var expr = buildFromVisual();
     if (generatedExpr) generatedExpr.textContent = expr;
-    if (input) input.value = expr;
-    parse(expr);
+    return expr;
   }
 
-  function switchTab(tab) {
-    var isVisual = tab === 'visual';
-    if (tabVisual) tabVisual.classList.toggle('active', isVisual);
-    if (tabExpr) tabExpr.classList.toggle('active', !isVisual);
-    if (panelVisual) panelVisual.hidden = !isVisual;
-    if (panelExpr) panelExpr.hidden = isVisual;
-    if (isVisual) {
-      syncAndParse();
-    } else if (input && generatedExpr) {
-      input.value = generatedExpr.textContent;
+  function loadVisualFromExpression(expr) {
+    if (!cronFreq) return;
+
+    var raw = (expr || '').trim().toLowerCase();
+    if (ALIASES[raw]) raw = ALIASES[raw];
+
+    if (!raw) {
+      cronFreq.value = 'daily';
+      showFreqOptions('daily');
+      updatePreview();
+      return;
     }
+
+    var parts = raw.replace(/\s+/g, ' ').split(' ');
+    if (parts.length !== 5) {
+      cronFreq.value = 'custom';
+      showFreqOptions('custom');
+      setCustomFields(['*', '*', '*', '*', '*']);
+      updatePreview();
+      return;
+    }
+
+    var minute = parts[0];
+    var hour = parts[1];
+    var dom = parts[2];
+    var month = parts[3];
+    var dow = parts[4];
+
+    if (minute === '*' && hour === '*' && dom === '*' && month === '*' && dow === '*') {
+      cronFreq.value = 'every_minute';
+    } else if (isPlainNumber(minute) && hour === '*' && dom === '*' && month === '*' && dow === '*') {
+      cronFreq.value = 'hourly';
+      setSelectValue('hourlyMinute', minute);
+    } else if (isPlainNumber(minute) && isPlainNumber(hour) && dom === '*' && month === '*' && dow === '*') {
+      cronFreq.value = 'daily';
+      setSelectValue('dailyMinute', minute);
+      setSelectValue('dailyHour', hour);
+    } else if (isPlainNumber(minute) && isPlainNumber(hour) && dom === '*' && month === '*' && dow !== '*') {
+      cronFreq.value = 'weekly';
+      setSelectValue('weeklyMinute', minute);
+      setSelectValue('weeklyHour', hour);
+      setWeeklyDow(dow);
+    } else if (isPlainNumber(minute) && isPlainNumber(hour) && isPlainNumber(dom) && month === '*' && dow === '*') {
+      cronFreq.value = 'monthly';
+      setSelectValue('monthlyMinute', minute);
+      setSelectValue('monthlyHour', hour);
+      setSelectValue('monthlyDay', dom);
+    } else {
+      cronFreq.value = 'custom';
+      setCustomFields(parts);
+    }
+
+    showFreqOptions(cronFreq.value);
+    updatePreview();
+  }
+
+  function openModal() {
+    if (!cronModal) return;
+    loadVisualFromExpression(input ? input.value : '');
+    cronModal.hidden = false;
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    if (!cronModal) return;
+    cronModal.hidden = true;
+    document.body.style.overflow = '';
+  }
+
+  function applyModal() {
+    var expr = updatePreview();
+    if (input) input.value = expr;
+    closeModal();
+    parse(expr);
   }
 
   function initBuilder() {
@@ -406,25 +483,24 @@
 
     cronFreq.addEventListener('change', function () {
       showFreqOptions(cronFreq.value);
-      syncAndParse();
+      updatePreview();
     });
 
     document.querySelectorAll('.cron-builder select').forEach(function (el) {
-      el.addEventListener('change', syncAndParse);
+      el.addEventListener('change', updatePreview);
     });
 
     var weeklyDow = document.getElementById('weeklyDow');
-    if (weeklyDow) {
-      weeklyDow.addEventListener('change', syncAndParse);
-    }
+    if (weeklyDow) weeklyDow.addEventListener('change', updatePreview);
 
     var customFields = document.getElementById('customFields');
-    if (customFields) {
-      customFields.addEventListener('input', syncAndParse);
-    }
+    if (customFields) customFields.addEventListener('input', updatePreview);
 
-    if (tabVisual) tabVisual.addEventListener('click', function () { switchTab('visual'); });
-    if (tabExpr) tabExpr.addEventListener('click', function () { switchTab('expr'); });
+    if (btnOpenBuilder) btnOpenBuilder.addEventListener('click', openModal);
+    if (btnCloseModal) btnCloseModal.addEventListener('click', closeModal);
+    if (btnCancelModal) btnCancelModal.addEventListener('click', closeModal);
+    if (cronModalBackdrop) cronModalBackdrop.addEventListener('click', closeModal);
+    if (btnApplyModal) btnApplyModal.addEventListener('click', applyModal);
 
     if (btnCopyExpr && generatedExpr) {
       btnCopyExpr.addEventListener('click', function () {
@@ -432,10 +508,11 @@
       });
     }
 
-    syncAndParse();
+    document.addEventListener('keydown', function (e) {
+      if (cronModal && !cronModal.hidden && e.key === 'Escape') closeModal();
+    });
   }
 
-  if (cronFreq) {
-    initBuilder();
-  }
+  if (cronFreq) initBuilder();
+  if (input && input.value) parse();
 })();

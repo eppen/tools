@@ -594,26 +594,138 @@ textarea.error-field {
   color: var(--text);
 }
 
+/* Input group with addon button */
+.input-group {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+}
+
+.input-group input[type="text"] {
+  flex: 1;
+  min-width: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right: none;
+}
+
+.input-group input[type="text"]:focus {
+  z-index: 1;
+  border-right: 1px solid var(--border-focus);
+}
+
+.input-group-addon {
+  flex-shrink: 0;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-left: none;
+  padding: 8px 14px;
+  white-space: nowrap;
+}
+
+.input-group-addon .addon-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.input-group-addon .addon-text {
+  margin-left: 6px;
+}
+
+@media (max-width: 480px) {
+  .input-group-addon .addon-text {
+    display: none;
+  }
+
+  .input-group-addon {
+    padding: 8px 12px;
+  }
+}
+
+/* Cron builder modal */
+.cron-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.cron-modal[hidden] {
+  display: none;
+}
+
+.cron-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.cron-modal-dialog {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+}
+
+.cron-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.cron-modal-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.cron-modal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.cron-modal-close:hover {
+  color: var(--text);
+  background: var(--bg-input);
+}
+
+.cron-modal-body {
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.cron-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+}
+
 /* Cron builder */
-.cron-mode-tabs {
-  margin-bottom: 16px;
-}
-
-.cron-panel + .cron-panel {
-  margin-top: 0;
-  border-top: none;
-  border-radius: 0;
-}
-
-.cron-panel:first-of-type {
-  border-radius: var(--radius) var(--radius) 0 0;
-}
-
-.cron-results-panel {
-  border-radius: 0 0 var(--radius) var(--radius);
-  margin-bottom: 24px;
-}
-
 .cron-builder {
   display: flex;
   flex-direction: column;
